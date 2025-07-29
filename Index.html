@@ -1,1 +1,669 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>آلة حاسبة ذكية</title>
+    <meta name="description" content="آلة حاسبة ذكية ومتطورة مع الذكاء الاصطناعي">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            touch-action: manipulation;
+        }
+
+        .particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.2;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 15px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 1rem;
+        }
+
+        .calculator {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .display {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            min-height: 120px;
+        }
+
+        .equation {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            min-height: 20px;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+
+        .result {
+            color: white;
+            font-size: 2.2rem;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            font-weight: bold;
+        }
+
+        .ai-suggestion {
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .ai-suggestion.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            background: #6b7280;
+            color: #d1d5db;
+            flex: 1;
+        }
+
+        .ai-mode-btn.active {
+            background: #7c3aed;
+            color: white;
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .scientific-functions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .sci-btn {
+            padding: 10px;
+            background: rgba(59, 130, 246, 0.25);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(5px);
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .sci-btn:active {
+            background: rgba(59, 130, 246, 0.4);
+            transform: scale(0.95);
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .number-btn {
+            background: rgba(31, 41, 55, 0.9);
+            color: white;
+            border: 1px solid rgba(107, 114, 128, 0.4);
+        }
+
+        .number-btn:active {
+            background: rgba(55, 65, 81, 0.9);
+        }
+
+        .operator-btn {
+            background: rgba(107, 114, 128, 0.9);
+            color: white;
+            border: 1px solid rgba(107, 114, 128, 0.4);
+        }
+
+        .operator-btn:active {
+            background: rgba(75, 85, 99, 0.9);
+        }
+
+        .clear-btn {
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            grid-column: span 2;
+        }
+
+        .clear-btn:active {
+            background: rgba(185, 28, 28, 0.9);
+        }
+
+        .delete-btn {
+            background: rgba(234, 88, 12, 0.9);
+            color: white;
+            border: 1px solid rgba(234, 88, 12, 0.4);
+        }
+
+        .delete-btn:active {
+            background: rgba(194, 65, 12, 0.9);
+        }
+
+        .equals-btn {
+            background: rgba(34, 197, 94, 0.9);
+            color: white;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .equals-btn:active {
+            background: rgba(22, 163, 74, 0.9);
+        }
+
+        .zero-btn {
+            grid-column: span 2;
+        }
+
+        .history-panel {
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            max-height: 200px;
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .history-panel.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .history-title {
+            color: white;
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .history-item {
+            background: rgba(31, 41, 55, 0.6);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:active {
+            background: rgba(55, 65, 81, 0.6);
+            transform: scale(0.98);
+        }
+
+        .history-equation {
+            color: #d1d5db;
+            font-size: 0.8rem;
+        }
+
+        .history-result {
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .history-time {
+            color: #6b7280;
+            font-size: 0.7rem;
+        }
+
+        .no-history {
+            color: #9ca3af;
+            text-align: center;
+            padding: 15px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .result {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                padding: 15px;
+                font-size: 1rem;
+                min-height: 55px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="particles-canvas" id="particlesCanvas"></canvas>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🧮 آلة حاسبة ذكية 🧠</h1>
+            <p class="subtitle">مدعومة بالذكاء الاصطناعي</p>
+        </div>
+
+        <div class="calculator">
+            <div class="display">
+                <div class="equation" id="equation"></div>
+                <div class="result" id="display">0</div>
+                <div class="ai-suggestion" id="aiSuggestion"></div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn ai-mode-btn" id="aiModeBtn">🧠 ذكاء اصطناعي</button>
+                <button class="control-btn history-btn" id="historyBtn">📚 السجل</button>
+            </div>
+
+            <div class="scientific-functions">
+                <button class="sci-btn" onclick="addFunction('sin(')">sin</button>
+                <button class="sci-btn" onclick="addFunction('cos(')">cos</button>
+                <button class="sci-btn" onclick="addFunction('tan(')">tan</button>
+                <button class="sci-btn" onclick="addFunction('log10(')">log</button>
+                <button class="sci-btn" onclick="addFunction('log(')">ln</button>
+                <button class="sci-btn" onclick="addFunction('sqrt(')">√</button>
+                <button class="sci-btn" onclick="addFunction('3.14159')">π</button>
+                <button class="sci-btn" onclick="addFunction('2.71828')">e</button>
+            </div>
+
+            <div class="buttons-grid">
+                <button class="btn clear-btn" onclick="clearAll()">مسح</button>
+                <button class="btn delete-btn" onclick="deleteLast()">⌫</button>
+                <button class="btn operator-btn" onclick="addOperator('/')">÷</button>
+
+                <button class="btn number-btn" onclick="addNumber('7')">7</button>
+                <button class="btn number-btn" onclick="addNumber('8')">8</button>
+                <button class="btn number-btn" onclick="addNumber('9')">9</button>
+                <button class="btn operator-btn" onclick="addOperator('*')">×</button>
+
+                <button class="btn number-btn" onclick="addNumber('4')">4</button>
+                <button class="btn number-btn" onclick="addNumber('5')">5</button>
+                <button class="btn number-btn" onclick="addNumber('6')">6</button>
+                <button class="btn operator-btn" onclick="addOperator('-')">-</button>
+
+                <button class="btn number-btn" onclick="addNumber('1')">1</button>
+                <button class="btn number-btn" onclick="addNumber('2')">2</button>
+                <button class="btn number-btn" onclick="addNumber('3')">3</button>
+                <button class="btn operator-btn" onclick="addOperator('+')">+</button>
+
+                <button class="btn number-btn zero-btn" onclick="addNumber('0')">0</button>
+                <button class="btn number-btn" onclick="addNumber('.')">.</button>
+                <button class="btn equals-btn" onclick="calculate()">=</button>
+            </div>
+        </div>
+
+        <div class="history-panel" id="historyPanel">
+            <div class="history-title">📚 سجل العمليات</div>
+            <div id="historyContent">
+                <div class="no-history">لا توجد عمليات سابقة</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MathEngine = {
+            evaluate: function(expression) {
+                try {
+                    let cleanExpr = expression
+                        .replace(/sin\(/g, 'Math.sin(')
+                        .replace(/cos\(/g, 'Math.cos(')
+                        .replace(/tan\(/g, 'Math.tan(')
+                        .replace(/log10\(/g, 'Math.log10(')
+                        .replace(/log\(/g, 'Math.log(')
+                        .replace(/sqrt\(/g, 'Math.sqrt(')
+                        .replace(/\^/g, '**')
+                        .replace(/×/g, '*')
+                        .replace(/÷/g, '/');
+
+                    return Function('"use strict"; return (' + cleanExpr + ')')();
+                } catch (e) {
+                    throw new Error('خطأ في الحساب');
+                }
+            }
+        };
+
+        let display = '0';
+        let equation = '';
+        let history = [];
+        let isAIMode = false;
+        let showHistory = false;
+
+        const displayElement = document.getElementById('display');
+        const equationElement = document.getElementById('equation');
+        const aiSuggestionElement = document.getElementById('aiSuggestion');
+        const aiModeBtn = document.getElementById('aiModeBtn');
+        const historyBtn = document.getElementById('historyBtn');
+        const historyPanel = document.getElementById('historyPanel');
+        const historyContent = document.getElementById('historyContent');
+
+        function initParticles() {
+            const canvas = document.getElementById('particlesCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            const particles = [];
+            
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    size: Math.random() * 1.5 + 0.5,
+                    opacity: Math.random() * 0.3 + 0.1
+                });
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(particle => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    
+                    if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+                    if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+                    
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(59, 130, 246, ${particle.opacity})`;
+                    ctx.fill();
+                });
+                
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+
+        function analyzeInput(input) {
+            if (!isAIMode) return;
+            
+            let suggestion = '';
+            
+            if (input.includes('sqrt')) {
+                suggestion = '💡 يمكنك أيضاً استخدام x^0.5 للجذر التربيعي';
+            } else if (input.includes('sin') || input.includes('cos') || input.includes('tan')) {
+                suggestion = '📐 تذكر: القيم بالراديان. اضرب بـ 3.14159/180 للدرجات';
+            } else if (input.includes('/0')) {
+                suggestion = '⚠️ لا يمكن القسمة على صفر!';
+            } else if (input.match(/\d+\s*\^\s*\d+/)) {
+                suggestion = '⚡ استخدم ** للأسس مثل 2**3';
+            } else if (input.includes('log10')) {
+                suggestion = '📊 log10 = اللوغاريتم العشري، log = اللوغاريتم الطبيعي';
+            } else if (input.match(/\d+\.\d{3,}/)) {
+                suggestion = '🎯 النتيجة طويلة، يمكنك تقريبها';
+            }
+            
+            showAISuggestion(suggestion);
+        }
+
+        function showAISuggestion(text) {
+            if (text) {
+                aiSuggestionElement.textContent = text;
+                aiSuggestionElement.classList.add('show');
+            } else {
+                aiSuggestionElement.classList.remove('show');
+            }
+        }
+
+        function addNumber(num) {
+            if (display === '0' || display === 'خطأ') {
+                display = num;
+            } else {
+                display = display + num;
+            }
+            equation = equation + num;
+            updateDisplay();
+            analyzeInput(equation);
+        }
+
+        function addOperator(op) {
+            if (equation && !equation.endsWith(' ')) {
+                display = '0';
+                equation = equation + ' ' + op + ' ';
+                updateDisplay();
+                analyzeInput(equation);
+            }
+        }
+
+        function addFunction(func) {
+            equation = equation + func;
+            display = func;
+            updateDisplay();
+            analyzeInput(equation);
+        }
+
+        function calculate() {
+            if (!equation) return;
+            
+            try {
+                const result = MathEngine.evaluate(equation);
+                
+                if (!isFinite(result)) {
+                    throw new Error('نتيجة غير صحيحة');
+                }
+                
+                const calculation = {
+                    equation: equation,
+                    result: Number(result).toPrecision(10).replace(/\.?0+$/, ''),
+                    timestamp: new Date().toLocaleTimeString('ar-DZ', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
+                };
+                
+                history.unshift(calculation);
+                if (history.length > 10) history.pop();
+                
+                display = calculation.result;
+                equation = calculation.result;
+                updateDisplay();
+                updateHistory();
+                showAISuggestion('✅ تم الحساب بنجاح!');
+                
+                setTimeout(() => showAISuggestion(''), 3000);
+            } catch (error) {
+                display = 'خطأ';
+                updateDisplay();
+                showAISuggestion('❌ خطأ في المعادلة. تحقق من الصيغة');
+                setTimeout(() => {
+                    display = '0';
+                    equation = '';
+                    updateDisplay();
+                    showAISuggestion('');
+                }, 2000);
+            }
+        }
+
+        function clearAll() {
+            display = '0';
+            equation = '';
+            updateDisplay();
+            showAISuggestion('');
+        }
+
+        function deleteLast() {
+            if (equation.length > 0) {
+                equation = equation.slice(0, -1);
+                const parts = equation.split(' ');
+                display = parts[parts.length - 1] || '0';
+                updateDisplay();
+                analyzeInput(equation);
+            }
+        }
+
+        function updateDisplay() {
+            displayElement.textContent = display;
+            equationElement.textContent = equation;
+        }
+
+        function updateHistory() {
+            if (history.length === 0) {
+                historyContent.innerHTML = '<div class="no-history">لا توجد عمليات سابقة</div>';
+                return;
+            }
+            
+            historyContent.innerHTML = history.map(calc => `
+                <div class="history-item" onclick="useFromHistory('${calc.result}')">
+                    <div class="history-equation">${calc.equation}</div>
+                    <div class="history-result">= ${calc.result}</div>
+                    <div class="history-time">${calc.timestamp}</div>
+                </div>
+            `).join('');
+        }
+
+        function useFromHistory(result) {
+            equation = result;
+            display = result;
+            updateDisplay();
+        }
+
+        aiModeBtn.addEventListener('click', () => {
+            isAIMode = !isAIMode;
+            aiModeBtn.classList.toggle('active');
+            if (!isAIMode) {
+                showAISuggestion('');
+            } else {
+                showAISuggestion('🧠 تم تفعيل وضع الذكاء الاصطناعي');
+                setTimeout(() => showAISuggestion(''), 2000);
+            }
+        });
+
+        historyBtn.addEventListener('click', () => {
+            showHistory = !showHistory;
+            if (showHistory) {
+                historyPanel.classList.add('show');
+                updateHistory();
+            } else {
+                historyPanel.classList.remove('show');
+            }
+        });
+
+        window.addEventListener('load', () => {
+            initParticles();
+            updateDisplay();
+            
+            setTimeout(() => {
+                isAIMode = true;
+                aiModeBtn.classList.add('active');
+            }, 1000);
+        });
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('selectstart', e => e.preventDefault());
+        document.addEventListener('dragstart', e => e.preventDefault());
+    </script>
+</body>
+  </html>
